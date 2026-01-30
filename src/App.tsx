@@ -12,6 +12,7 @@ import Search from "./pages/Search";
 import Messages from "./pages/Messages";
 import Conversation from "./pages/Conversation";
 import PostDetail from "./pages/PostDetail";
+import AdminPanel from "./pages/AdminPanel";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -32,6 +33,7 @@ const App = () => (
             <Route path="/messages" element={<Messages />} />
             <Route path="/messages/:conversationId" element={<Conversation />} />
             <Route path="/post/:postId" element={<PostDetail />} />
+            <Route path="/admin" element={<AdminPanel />} />
             <Route path="*" element={<NotFound />} />
           </Routes>
         </AuthProvider>
