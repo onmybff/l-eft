@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Trash2, Users, FileText, Shield } from 'lucide-react';
+import { Trash2, Users, FileText, Shield, BarChart3, UserCog } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
 import { MainLayout } from '@/components/layout/MainLayout';
@@ -15,6 +15,8 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table';
+import { AnalyticsDashboard } from '@/components/admin/AnalyticsDashboard';
+import { RoleManagement } from '@/components/admin/RoleManagement';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -136,11 +138,29 @@ export default function AdminPanel() {
           </div>
         </div>
 
-        <Tabs defaultValue="users" className="w-full">
-          <TabsList className="w-full mb-4">
-            <TabsTrigger value="users" className="flex-1">Users</TabsTrigger>
-            <TabsTrigger value="posts" className="flex-1">Posts</TabsTrigger>
+        <Tabs defaultValue="analytics" className="w-full">
+          <TabsList className="w-full mb-4 grid grid-cols-4">
+            <TabsTrigger value="analytics" className="gap-1">
+              <BarChart3 className="w-4 h-4 hidden sm:inline" />
+              Analytics
+            </TabsTrigger>
+            <TabsTrigger value="users" className="gap-1">
+              <Users className="w-4 h-4 hidden sm:inline" />
+              Users
+            </TabsTrigger>
+            <TabsTrigger value="posts" className="gap-1">
+              <FileText className="w-4 h-4 hidden sm:inline" />
+              Posts
+            </TabsTrigger>
+            <TabsTrigger value="roles" className="gap-1">
+              <UserCog className="w-4 h-4 hidden sm:inline" />
+              Roles
+            </TabsTrigger>
           </TabsList>
+
+          <TabsContent value="analytics">
+            <AnalyticsDashboard />
+          </TabsContent>
 
           <TabsContent value="users">
             <div className="bg-card border border-border rounded-xl overflow-hidden">
@@ -280,6 +300,10 @@ export default function AdminPanel() {
                 </Table>
               )}
             </div>
+          </TabsContent>
+
+          <TabsContent value="roles">
+            <RoleManagement />
           </TabsContent>
         </Tabs>
       </div>
