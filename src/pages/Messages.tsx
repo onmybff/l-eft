@@ -96,7 +96,7 @@ export default function Messages() {
 
   return (
     <MainLayout>
-      <div className="max-w-2xl mx-auto border-x border-border min-h-screen">
+      <div className="max-w-2xl mx-auto border-x border-border min-h-screen pb-20 md:pb-0">
         <header className="sticky top-0 z-10 glass border-b border-border p-4 flex items-center justify-between">
           <h1 className="text-xl font-bold">Messages</h1>
         </header>

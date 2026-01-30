@@ -145,7 +145,7 @@ export default function Conversation() {
 
   return (
     <MainLayout>
-      <div className="max-w-2xl mx-auto border-x border-border min-h-screen flex flex-col">
+      <div className="max-w-2xl mx-auto border-x border-border min-h-screen flex flex-col pb-16 md:pb-0">
         <header className="sticky top-0 z-10 glass border-b border-border p-4 flex items-center gap-4">
           <Button variant="ghost" size="icon" onClick={() => navigate('/messages')}>
             <ArrowLeft className="w-5 h-5" />

@@ -37,7 +37,7 @@ export default function Search() {
 
   return (
     <MainLayout>
-      <div className="max-w-2xl mx-auto border-x border-border min-h-screen">
+      <div className="max-w-2xl mx-auto border-x border-border min-h-screen pb-20 md:pb-0">
         <header className="sticky top-0 z-10 glass border-b border-border p-4">
           <h1 className="text-xl font-bold mb-4">Search</h1>
           <div className="relative">
