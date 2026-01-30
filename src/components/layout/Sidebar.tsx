@@ -3,6 +3,7 @@ import { Home, Search, MessageCircle, User, LogOut, PenSquare, Shield } from 'lu
 import { useAuth } from '@/contexts/AuthContext';
 import { Button } from '@/components/ui/button';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { NotificationBell } from '@/components/notifications/NotificationBell';
 
 export function Sidebar() {
   const location = useLocation();
@@ -20,10 +21,11 @@ export function Sidebar() {
 
   return (
     <aside className="fixed left-0 top-0 h-full w-64 border-r border-border bg-sidebar p-4 flex flex-col">
-      <div className="mb-8">
+      <div className="mb-8 flex items-center justify-between">
         <Link to="/" className="flex items-center gap-2">
           <span className="text-2xl font-bold gradient-text">L_EFT</span>
         </Link>
+        <NotificationBell />
       </div>
 
       <nav className="flex-1 space-y-1">
@@ -43,7 +45,7 @@ export function Sidebar() {
         ))}
       </nav>
 
-      <Link to="/compose" className="block mb-4">
+      <Link to="/" className="block mb-4">
         <Button className="w-full gradient-bg text-primary-foreground font-semibold hover:opacity-90 transition-opacity">
           <PenSquare className="w-4 h-4 mr-2" />
           New Post
