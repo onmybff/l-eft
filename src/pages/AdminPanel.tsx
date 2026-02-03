@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Trash2, Users, FileText, Shield, BarChart3, UserCog } from 'lucide-react';
+import { Trash2, Users, FileText, Shield, BarChart3, UserCog, Flag } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
 import { MainLayout } from '@/components/layout/MainLayout';
@@ -17,6 +17,7 @@ import {
 } from '@/components/ui/table';
 import { AnalyticsDashboard } from '@/components/admin/AnalyticsDashboard';
 import { RoleManagement } from '@/components/admin/RoleManagement';
+import { PostModeration } from '@/components/admin/PostModeration';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -139,7 +140,7 @@ export default function AdminPanel() {
         </div>
 
         <Tabs defaultValue="analytics" className="w-full">
-          <TabsList className="w-full mb-4 grid grid-cols-4">
+          <TabsList className="w-full mb-4 grid grid-cols-5">
             <TabsTrigger value="analytics" className="gap-1">
               <BarChart3 className="w-4 h-4 hidden sm:inline" />
               Analytics
@@ -151,6 +152,10 @@ export default function AdminPanel() {
             <TabsTrigger value="posts" className="gap-1">
               <FileText className="w-4 h-4 hidden sm:inline" />
               Posts
+            </TabsTrigger>
+            <TabsTrigger value="moderation" className="gap-1">
+              <Flag className="w-4 h-4 hidden sm:inline" />
+              Moderation
             </TabsTrigger>
             <TabsTrigger value="roles" className="gap-1">
               <UserCog className="w-4 h-4 hidden sm:inline" />
@@ -300,6 +305,10 @@ export default function AdminPanel() {
                 </Table>
               )}
             </div>
+          </TabsContent>
+
+          <TabsContent value="moderation">
+            <PostModeration />
           </TabsContent>
 
           <TabsContent value="roles">

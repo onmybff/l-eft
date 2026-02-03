@@ -9,6 +9,7 @@ interface AuthContextType {
   profile: Profile | null;
   loading: boolean;
   isAdmin: boolean;
+  isModerator: boolean;
   signUp: (email: string, password: string, username: string) => Promise<{ error: Error | null }>;
   signIn: (email: string, password: string) => Promise<{ error: Error | null }>;
   signOut: () => Promise<void>;
@@ -23,6 +24,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [profile, setProfile] = useState<Profile | null>(null);
   const [loading, setLoading] = useState(true);
   const [isAdmin, setIsAdmin] = useState(false);
+  const [isModerator, setIsModerator] = useState(false);
 
   const fetchProfile = async (userId: string) => {
     const { data } = await supabase
@@ -38,11 +40,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     const { data } = await supabase
       .from('user_roles')
       .select('role')
-      .eq('user_id', userId)
-      .eq('role', 'admin')
-      .maybeSingle();
+      .eq('user_id', userId);
     
-    setIsAdmin(!!data);
+    const roles = data?.map(r => r.role) || [];
+    setIsAdmin(roles.includes('admin'));
+    setIsModerator(roles.includes('moderator') || roles.includes('admin'));
   };
 
   useEffect(() => {
@@ -58,6 +60,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       } else {
         setProfile(null);
         setIsAdmin(false);
+        setIsModerator(false);
       }
       setLoading(false);
     });
@@ -112,6 +115,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setSession(null);
     setProfile(null);
     setIsAdmin(false);
+    setIsModerator(false);
   };
 
   const refreshProfile = async () => {
@@ -121,7 +125,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   };
 
   return (
-    <AuthContext.Provider value={{ user, session, profile, loading, isAdmin, signUp, signIn, signOut, refreshProfile }}>
+    <AuthContext.Provider value={{ user, session, profile, loading, isAdmin, isModerator, signUp, signIn, signOut, refreshProfile }}>
       {children}
     </AuthContext.Provider>
   );

@@ -234,24 +234,36 @@ export type Database = {
         Row: {
           content: string | null
           created_at: string
+          flag_reason: string | null
+          flagged_at: string | null
+          flagged_by: string | null
           id: string
           image_url: string | null
+          is_flagged: boolean
           updated_at: string
           user_id: string
         }
         Insert: {
           content?: string | null
           created_at?: string
+          flag_reason?: string | null
+          flagged_at?: string | null
+          flagged_by?: string | null
           id?: string
           image_url?: string | null
+          is_flagged?: boolean
           updated_at?: string
           user_id: string
         }
         Update: {
           content?: string | null
           created_at?: string
+          flag_reason?: string | null
+          flagged_at?: string | null
+          flagged_by?: string | null
           id?: string
           image_url?: string | null
+          is_flagged?: boolean
           updated_at?: string
           user_id?: string
         }

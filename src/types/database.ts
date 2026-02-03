@@ -16,6 +16,10 @@ export interface Post {
   image_url: string | null;
   created_at: string;
   updated_at: string;
+  is_flagged?: boolean;
+  flagged_by?: string | null;
+  flagged_at?: string | null;
+  flag_reason?: string | null;
   profiles?: Profile;
   likes?: { count: number }[];
   comments?: { count: number }[];
