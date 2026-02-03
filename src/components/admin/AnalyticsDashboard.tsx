@@ -1,8 +1,10 @@
 import { useState, useEffect } from 'react';
-import { TrendingUp, Users, FileText, Heart, MessageCircle, UserPlus } from 'lucide-react';
+import { TrendingUp, Users, FileText, Heart, MessageCircle, UserPlus, Download } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
 import { subDays, format, startOfDay, endOfDay } from 'date-fns';
+import { useToast } from '@/hooks/use-toast';
 
 interface DailyMetric {
   date: string;
@@ -21,6 +23,7 @@ interface AnalyticsData {
 }
 
 export function AnalyticsDashboard() {
+  const { toast } = useToast();
   const [analytics, setAnalytics] = useState<AnalyticsData | null>(null);
   const [loading, setLoading] = useState(true);
 
@@ -98,6 +101,44 @@ export function AnalyticsDashboard() {
     return Object.entries(counts).map(([date, count]) => ({ date, count }));
   };
 
+  const exportToCSV = () => {
+    if (!analytics) return;
+
+    const csvData = [
+      ['Metric', 'Value'],
+      ['Total Users', analytics.totalUsers.toString()],
+      ['Total Posts', analytics.totalPosts.toString()],
+      ['Total Likes', analytics.totalLikes.toString()],
+      ['Total Comments', analytics.totalComments.toString()],
+      ['New Users Today', analytics.newUsersToday.toString()],
+      ['Posts Today', analytics.postsToday.toString()],
+      ['Avg Likes/Post', analytics.totalPosts > 0 ? (analytics.totalLikes / analytics.totalPosts).toFixed(2) : '0'],
+      ['Avg Comments/Post', analytics.totalPosts > 0 ? (analytics.totalComments / analytics.totalPosts).toFixed(2) : '0'],
+      ['Posts/User', analytics.totalUsers > 0 ? (analytics.totalPosts / analytics.totalUsers).toFixed(2) : '0'],
+      [],
+      ['Daily Posts (Last 7 Days)'],
+      ['Date', 'Count'],
+      ...analytics.dailyPosts.map(d => [d.date, d.count.toString()]),
+      [],
+      ['Daily Users (Last 7 Days)'],
+      ['Date', 'Count'],
+      ...analytics.dailyUsers.map(d => [d.date, d.count.toString()]),
+    ];
+
+    const csvContent = csvData.map(row => row.join(',')).join('\n');
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    const link = document.createElement('a');
+    const url = URL.createObjectURL(blob);
+    link.setAttribute('href', url);
+    link.setAttribute('download', `analytics_${format(new Date(), 'yyyy-MM-dd')}.csv`);
+    link.style.visibility = 'hidden';
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    
+    toast({ title: 'Analytics exported to CSV' });
+  };
+
   if (loading) {
     return (
       <div className="flex items-center justify-center h-64">
@@ -119,6 +160,14 @@ export function AnalyticsDashboard() {
 
   return (
     <div className="space-y-6">
+      {/* Export Button */}
+      <div className="flex justify-end">
+        <Button variant="outline" onClick={exportToCSV}>
+          <Download className="w-4 h-4 mr-2" />
+          Export CSV
+        </Button>
+      </div>
+
       {/* Overview Cards */}
       <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
         {metrics.map((metric) => (
