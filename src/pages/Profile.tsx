@@ -49,7 +49,7 @@ export default function Profile() {
   const fetchUserData = async () => {
     if (!user) return;
 
-    // Fetch posts
+    // Fetch posts - users can see their own posts (including flagged ones)
     const { data: postsData } = await supabase
       .from('posts')
       .select(`
