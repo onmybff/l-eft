@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Flag, Trash2, Eye, EyeOff, AlertTriangle, Check } from 'lucide-react';
+import { Flag, Trash2, EyeOff, AlertTriangle, Check, ChevronLeft, ChevronRight } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { Button } from '@/components/ui/button';
@@ -22,6 +22,17 @@ import {
   DialogTitle,
   DialogTrigger,
 } from '@/components/ui/dialog';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from '@/components/ui/alert-dialog';
 import { Textarea } from '@/components/ui/textarea';
 import { useToast } from '@/hooks/use-toast';
 import { Post, Profile } from '@/types/database';
@@ -31,6 +42,8 @@ interface PostWithProfile extends Post {
   profile?: Profile;
 }
 
+const POSTS_PER_PAGE = 10;
+
 export function PostModeration() {
   const { toast } = useToast();
   const { user, isAdmin } = useAuth();
@@ -39,18 +52,37 @@ export function PostModeration() {
   const [flagReason, setFlagReason] = useState('');
   const [selectedPost, setSelectedPost] = useState<string | null>(null);
   const [showFlagged, setShowFlagged] = useState(false);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [totalCount, setTotalCount] = useState(0);
 
   useEffect(() => {
     fetchPosts();
-  }, [showFlagged]);
+  }, [showFlagged, currentPage]);
 
   const fetchPosts = async () => {
     setLoading(true);
     
+    const from = (currentPage - 1) * POSTS_PER_PAGE;
+    const to = from + POSTS_PER_PAGE - 1;
+    
+    // Get total count first
+    let countQuery = supabase
+      .from('posts')
+      .select('*', { count: 'exact', head: true });
+    
+    if (showFlagged) {
+      countQuery = countQuery.eq('is_flagged', true);
+    }
+    
+    const { count } = await countQuery;
+    setTotalCount(count || 0);
+    
+    // Fetch paginated posts
     let query = supabase
       .from('posts')
       .select('*')
-      .order('created_at', { ascending: false });
+      .order('created_at', { ascending: false })
+      .range(from, to);
     
     if (showFlagged) {
       query = query.eq('is_flagged', true);
@@ -135,6 +167,19 @@ export function PostModeration() {
     }
   };
 
+  const totalPages = Math.ceil(totalCount / POSTS_PER_PAGE);
+
+  const handlePageChange = (newPage: number) => {
+    if (newPage >= 1 && newPage <= totalPages) {
+      setCurrentPage(newPage);
+    }
+  };
+
+  const handleFilterChange = () => {
+    setShowFlagged(!showFlagged);
+    setCurrentPage(1); // Reset to first page when filter changes
+  };
+
   if (loading) {
     return (
       <div className="flex items-center justify-center h-64">
@@ -154,12 +199,20 @@ export function PostModeration() {
         </div>
         <Button
           variant={showFlagged ? 'default' : 'outline'}
-          onClick={() => setShowFlagged(!showFlagged)}
+          onClick={handleFilterChange}
           className="ml-4"
         >
           <Flag className="w-4 h-4 mr-2" />
           {showFlagged ? 'Show All' : 'Flagged Only'}
         </Button>
+      </div>
+
+      <div className="flex items-center justify-between text-sm text-muted-foreground">
+        <span>
+          Showing {posts.length} of {totalCount} posts
+          {showFlagged && ' (flagged only)'}
+        </span>
+        <span>Page {currentPage} of {totalPages || 1}</span>
       </div>
 
       <div className="bg-card border border-border rounded-xl overflow-hidden">
@@ -263,15 +316,40 @@ export function PostModeration() {
                       )}
                       
                       {(isAdmin || post.is_flagged) && (
-                        <Button
-                          variant="ghost"
-                          size="icon"
-                          onClick={() => handleDeletePost(post.id)}
-                          className="text-destructive hover:text-destructive"
-                          title="Delete post"
-                        >
-                          <Trash2 className="w-4 h-4" />
-                        </Button>
+                        <AlertDialog>
+                          <AlertDialogTrigger asChild>
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              className="text-destructive hover:text-destructive"
+                              title="Delete post"
+                            >
+                              <Trash2 className="w-4 h-4" />
+                            </Button>
+                          </AlertDialogTrigger>
+                          <AlertDialogContent>
+                            <AlertDialogHeader>
+                              <AlertDialogTitle>Delete Post</AlertDialogTitle>
+                              <AlertDialogDescription>
+                                Are you sure you want to delete this post? This action cannot be undone.
+                                {post.content && (
+                                  <span className="block mt-2 p-2 bg-muted rounded text-foreground">
+                                    "{post.content.slice(0, 100)}{post.content.length > 100 ? '...' : ''}"
+                                  </span>
+                                )}
+                              </AlertDialogDescription>
+                            </AlertDialogHeader>
+                            <AlertDialogFooter>
+                              <AlertDialogCancel>Cancel</AlertDialogCancel>
+                              <AlertDialogAction
+                                onClick={() => handleDeletePost(post.id)}
+                                className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                              >
+                                Delete
+                              </AlertDialogAction>
+                            </AlertDialogFooter>
+                          </AlertDialogContent>
+                        </AlertDialog>
                       )}
                     </div>
                   </TableCell>
@@ -281,6 +359,58 @@ export function PostModeration() {
           </TableBody>
         </Table>
       </div>
+
+      {/* Pagination Controls */}
+      {totalPages > 1 && (
+        <div className="flex items-center justify-center gap-2">
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => handlePageChange(currentPage - 1)}
+            disabled={currentPage === 1}
+          >
+            <ChevronLeft className="w-4 h-4 mr-1" />
+            Previous
+          </Button>
+          
+          <div className="flex items-center gap-1">
+            {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
+              let pageNum: number;
+              if (totalPages <= 5) {
+                pageNum = i + 1;
+              } else if (currentPage <= 3) {
+                pageNum = i + 1;
+              } else if (currentPage >= totalPages - 2) {
+                pageNum = totalPages - 4 + i;
+              } else {
+                pageNum = currentPage - 2 + i;
+              }
+              
+              return (
+                <Button
+                  key={pageNum}
+                  variant={currentPage === pageNum ? 'default' : 'outline'}
+                  size="sm"
+                  onClick={() => handlePageChange(pageNum)}
+                  className="w-8 h-8 p-0"
+                >
+                  {pageNum}
+                </Button>
+              );
+            })}
+          </div>
+          
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => handlePageChange(currentPage + 1)}
+            disabled={currentPage === totalPages}
+          >
+            Next
+            <ChevronRight className="w-4 h-4 ml-1" />
+          </Button>
+        </div>
+      )}
 
       {posts.some(p => p.is_flagged && p.flag_reason) && (
         <div className="bg-yellow-500/10 border border-yellow-500/20 rounded-lg p-4">
