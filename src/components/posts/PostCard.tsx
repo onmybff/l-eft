@@ -1,12 +1,13 @@
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
-import { Heart, MessageCircle, Trash2, MoreHorizontal } from 'lucide-react';
+import { Heart, MessageCircle, Trash2, MoreHorizontal, AlertTriangle } from 'lucide-react';
 import { formatDistanceToNow } from 'date-fns';
 import { Post } from '@/types/database';
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -133,6 +134,15 @@ export function PostCard({ post, onDelete, onLikeChange, showComments = true }: 
               </DropdownMenu>
             )}
           </div>
+
+          {post.is_flagged && (
+            <div className="mt-2 flex items-center gap-2">
+              <Badge variant="destructive" className="gap-1">
+                <AlertTriangle className="w-3 h-3" />
+                Flagged for review
+              </Badge>
+            </div>
+          )}
 
           {post.content && (
             <p className="mt-2 whitespace-pre-wrap break-words">{post.content}</p>
