@@ -12,7 +12,7 @@ import { Button } from '@/components/ui/button';
 export default function PostDetail() {
   const { postId } = useParams<{ postId: string }>();
   const navigate = useNavigate();
-  const { user } = useAuth();
+  const { user, isAdmin, isModerator } = useAuth();
   const [post, setPost] = useState<Post | null>(null);
   const [isLoading, setIsLoading] = useState(true);
 
@@ -34,20 +34,31 @@ export default function PostDetail() {
       .eq('id', postId)
       .maybeSingle();
 
-    if (data && user) {
-      const { data: userLike } = await supabase
-        .from('likes')
-        .select('id')
-        .eq('post_id', postId)
-        .eq('user_id', user.id)
-        .maybeSingle();
+    // Check if post is flagged - only admins/moderators can view flagged posts
+    if (data) {
+      const canViewFlagged = isAdmin || isModerator;
+      if (data.is_flagged && !canViewFlagged) {
+        // Post is flagged and user doesn't have permission to view it
+        setPost(null);
+        setIsLoading(false);
+        return;
+      }
 
-      setPost({
-        ...data,
-        user_has_liked: !!userLike,
-      } as unknown as Post);
-    } else if (data) {
-      setPost(data as unknown as Post);
+      if (user) {
+        const { data: userLike } = await supabase
+          .from('likes')
+          .select('id')
+          .eq('post_id', postId)
+          .eq('user_id', user.id)
+          .maybeSingle();
+
+        setPost({
+          ...data,
+          user_has_liked: !!userLike,
+        } as unknown as Post);
+      } else {
+        setPost(data as unknown as Post);
+      }
     }
 
     setIsLoading(false);
