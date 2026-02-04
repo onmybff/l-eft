@@ -50,7 +50,7 @@ export default function UserProfile() {
 
     setProfile(profileData as Profile);
 
-    // Fetch posts
+    // Fetch posts - filter out flagged posts
     const { data: postsData } = await supabase
       .from('posts')
       .select(`
@@ -60,6 +60,7 @@ export default function UserProfile() {
         comments (count)
       `)
       .eq('user_id', profileData.user_id)
+      .eq('is_flagged', false)
       .order('created_at', { ascending: false });
 
     if (postsData && user) {

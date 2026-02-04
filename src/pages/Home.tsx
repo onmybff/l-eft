@@ -21,6 +21,7 @@ export default function Home() {
     setIsLoading(true);
     
     // Fetch "For You" posts - popular/recent posts sorted by engagement
+    // Filter out flagged posts so they don't appear in the feed
     const { data: popularData } = await supabase
       .from('posts')
       .select(`
@@ -29,6 +30,7 @@ export default function Home() {
         likes (count),
         comments (count)
       `)
+      .eq('is_flagged', false)
       .order('created_at', { ascending: false })
       .limit(50);
 
