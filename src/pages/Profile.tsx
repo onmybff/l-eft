@@ -54,14 +54,18 @@ export default function Profile() {
       .from('posts')
       .select(`
         *,
-        profiles:user_id (*),
         likes (count),
         comments (count)
       `)
       .eq('user_id', user.id)
       .order('created_at', { ascending: false });
 
-    if (postsData) {
+    // Attach profile to posts
+    if (postsData && profile) {
+      postsData.forEach(post => {
+        (post as any).profiles = profile;
+      });
+
       const { data: userLikes } = await supabase
         .from('likes')
         .select('post_id')

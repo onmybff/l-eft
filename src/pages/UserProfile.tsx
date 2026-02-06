@@ -55,7 +55,6 @@ export default function UserProfile() {
       .from('posts')
       .select(`
         *,
-        profiles:user_id (*),
         likes (count),
         comments (count)
       `)
@@ -63,22 +62,29 @@ export default function UserProfile() {
       .eq('is_flagged', false)
       .order('created_at', { ascending: false });
 
-    if (postsData && user) {
-      const { data: userLikes } = await supabase
-        .from('likes')
-        .select('post_id')
-        .eq('user_id', user.id);
+    // Attach profile to posts
+    if (postsData) {
+      postsData.forEach(post => {
+        (post as any).profiles = profileData;
+      });
 
-      const likedPostIds = new Set(userLikes?.map(l => l.post_id) || []);
+      if (user) {
+        const { data: userLikes } = await supabase
+          .from('likes')
+          .select('post_id')
+          .eq('user_id', user.id);
 
-      const postsWithLikeStatus = postsData.map(post => ({
-        ...post,
-        user_has_liked: likedPostIds.has(post.id),
-      }));
+        const likedPostIds = new Set(userLikes?.map(l => l.post_id) || []);
 
-      setPosts(postsWithLikeStatus as unknown as Post[]);
-    } else if (postsData) {
-      setPosts(postsData as unknown as Post[]);
+        const postsWithLikeStatus = postsData.map(post => ({
+          ...post,
+          user_has_liked: likedPostIds.has(post.id),
+        }));
+
+        setPosts(postsWithLikeStatus as unknown as Post[]);
+      } else {
+        setPosts(postsData as unknown as Post[]);
+      }
     }
 
     // Check if following
