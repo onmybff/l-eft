@@ -27,15 +27,23 @@ export default function PostDetail() {
       .from('posts')
       .select(`
         *,
-        profiles:user_id (*),
         likes (count),
         comments (count)
       `)
       .eq('id', postId)
       .maybeSingle();
 
-    // Check if post is flagged - only admins/moderators can view flagged posts
+    // Fetch profile separately
     if (data) {
+      const { data: profileData } = await supabase
+        .from('profiles')
+        .select('*')
+        .eq('user_id', data.user_id)
+        .maybeSingle();
+      
+      (data as any).profiles = profileData;
+
+      // Check if post is flagged - only admins/moderators can view flagged posts
       const canViewFlagged = isAdmin || isModerator;
       if (data.is_flagged && !canViewFlagged) {
         // Post is flagged and user doesn't have permission to view it

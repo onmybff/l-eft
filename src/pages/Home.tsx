@@ -26,13 +26,28 @@ export default function Home() {
       .from('posts')
       .select(`
         *,
-        profiles:user_id (*),
         likes (count),
         comments (count)
       `)
       .eq('is_flagged', false)
       .order('created_at', { ascending: false })
       .limit(50);
+
+    // Fetch profiles separately and join them
+    if (popularData && popularData.length > 0) {
+      const userIds = [...new Set(popularData.map(p => p.user_id))];
+      const { data: profilesData } = await supabase
+        .from('profiles')
+        .select('*')
+        .in('user_id', userIds);
+
+      const profilesMap = new Map(profilesData?.map(p => [p.user_id, p]) || []);
+      
+      // Attach profiles to posts
+      popularData.forEach(post => {
+        (post as any).profiles = profilesMap.get(post.user_id) || null;
+      });
+    }
 
     if (popularData && user) {
       const { data: userLikes } = await supabase
